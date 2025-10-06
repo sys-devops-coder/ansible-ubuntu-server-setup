@@ -1,0 +1,40 @@
+---
+- name: Install Docker
+  hosts: all
+  become: yes
+  vars_files:
+    - vars.yml
+  tasks:
+  - name: "Check if listed package is installed"
+    command: docker version
+    register: package_check
+    ignore_errors: yes
+
+  - name: Setup docker
+    block:
+      - name: remove the docker package
+        package:
+          name: docker
+          state: absent
+      - name: Update yum packages
+        yum:
+          name: '*'
+          state: latest
+          update_cache: yes
+      - name: Install Docker
+        yum:
+          name: docker-{{ docker_version }}*
+          state: latest
+      - name: Start Docker
+        service:
+          name: docker
+          state: started
+          enabled: yes
+
+    when: package_check is failed
+
+  - name: Docker version
+    shell: docker --version
+    register: deb
+  - debug:
+      var: deb.stdout_lines

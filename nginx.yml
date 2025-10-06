@@ -1,0 +1,40 @@
+---
+- name: Install Nginx
+  hosts: all
+  become: yes
+  # vars_files:
+  #   - vars.yml
+
+  tasks: 
+  - name: Update yum packages
+    yum:
+      name: '*'
+      state: latest
+      update_cache: yes
+  - name: Install openssl
+    yum:
+      name: openssl-devel
+      state: latest
+  - name: Enable to install Nginx
+    shell: "sudo amazon-linux-extras enable nginx1"
+  - name: Install Nginx
+    yum:
+      name: nginx
+      state: latest
+  - name: Start Nginx
+    service:
+      name: nginx
+      state: started
+  - name: Copy the Nginx config file
+    copy:
+      src: default.conf
+      dest: /etc/nginx/conf.d/default.conf
+  - name: Copy the content of the web site
+    copy:
+      src: index.html
+      dest: /usr/share/nginx/html/
+  - name: Restart Nginx
+    service:
+      name: nginx
+      state: restarted
+

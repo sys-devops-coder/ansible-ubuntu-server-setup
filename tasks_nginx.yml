@@ -1,0 +1,88 @@
+---
+  - name: Setup Nginx AWS linux
+    block:
+      - name: Update yum packages
+        yum:
+          name: '*'
+          state: latest
+          update_cache: yes
+      - name: Install openssl
+        yum:
+          name: openssl-devel
+          state: latest
+      - name: Enable to install Nginx
+        shell: "sudo amazon-linux-extras enable nginx1"
+      - name: Install pip
+        yum:
+          name: pip
+          state: latest
+      - name: Install passlib python package
+        pip:
+          name: passlib
+      - name: Install Nginx
+        yum:
+          name: nginx
+          state: latest
+      - name: Start Nginx
+        service:
+          name: nginx
+          state: started
+      - name: Copy the Nginx config file
+        copy:
+          src: nginx.conf
+          dest: /etc/nginx/nginx.conf
+          backup: yes
+      - name: Copy the content of the web site
+        template:
+          src: index.html.j2
+          dest: /usr/share/nginx/html/index.html
+      - htpasswd:
+          path: /etc/nginx/.htpasswd
+          name: admin-devops-program
+          password: "{{ admin-password }}"
+      - name: Restart Nginx
+        service:
+          name: nginx
+          state: restarted
+    when: ansible_os_family == "RedHat"
+  - name: Setup Nginx Ubuntu
+    block:
+      - name: Update apt packages
+        apt:
+          name: '*'
+          state: latest
+          update_cache: yes
+      - name: Install pip
+        apt:
+          name: pip
+          state: latest
+      - name: Install passlib python package
+        pip:
+          name: passlib
+      - name: Install Nginx
+        apt:
+          name: nginx
+          state: latest
+      - name: Start Nginx
+        service:
+          name: nginx
+          state: started
+      - name: Copy the Nginx config file
+        copy:
+          src: nginx.conf
+          dest: /etc/nginx/nginx.conf
+          backup: yes
+      - name: Copy the content of the web site
+        template:
+          src: index.html.j2
+          dest: /usr/share/nginx/html/index.html
+      - htpasswd:
+          path: /etc/nginx/.htpasswd
+          name: admin-devops-program
+          password: "{{ admin-password }}"
+      - name: Restart Nginx
+        service:
+          name: nginx
+          state: restarted
+    when: ansible_os_family == "Debian"
+
